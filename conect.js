@@ -66,7 +66,7 @@ app.post('/api/criar-usuario', async (req, res) => {
 
 
 
-const porta = process.env.PORT || 3000;
+const porta = process.env.PORT || 8080;
 
 app.listen(porta, () => {
     console.log(`Servidor Express rodando na porta ${porta}`);

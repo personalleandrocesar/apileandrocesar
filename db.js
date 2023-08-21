@@ -3,26 +3,37 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const app = express();
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const uri = "mongodb+srv://leandro:340209755@cluster0.rbzhjzh.mongodb.net/?retryWrites=true&w=majority";
 
-// Conectar ao banco de dados MongoDB
-mongoose.connect('mongodb+srv://leandro:340209755@cluster0.rbzhjzh.mongodb.net/?retryWrites=true&w=majority', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => {
-        // Criar a coleção 'usuarios' explicitamente
-        mongoose.connection.db.createCollection('usuarios', (err, res) => {
-            if (err) throw err;
-            console.log('Coleção de usuários criada');
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri,
+    {
+        serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true,
+        }
+    });
+
+async function run() {
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({
+            ping: 1
         });
-        console.log('Conectado ao MongoDB');
-    })
-    .catch(err => console.error('Erro de conexão com o MongoDB:', err));
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await client.close();
+    }
+}
+run().catch(console.dir);
 
-// Configurar o middleware body-parser para lidar com dados JSON
-app.use(bodyParser.json()); 
 
-const porta = process.env.PORT || 3025;
+const porta = process.env.PORT || 3000;
 
 app.listen(porta, () => {
     console.log(`Servidor Express rodando na porta ${porta}`);
