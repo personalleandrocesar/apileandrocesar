@@ -7,13 +7,13 @@ const path = require("path")
 const dirAtual = path.resolve("./testeDois")
 const content = "Conteúdo do arquivo criado!!!!"
 
-fs.readFile("/home/leandrocesar/Documents/le.txt", "utf8", (err, data) => {
+fs.readFile("/home/leandrocesarcosta/leandrocesarcom/apileandrocesar/helloworld.txt", "utf8", (err, data) => {
     if (err) throw err;
     console.log(data);
 }),
 
 
-fs.writeFile("/home/leandrocesar/Documents/leas.txt", content, (err) => {
+fs.writeFile("/home/leandrocesarcosta/leandrocesarcom/apileandrocesar/helloworld.txt", content, (err) => {
     if (err) throw err;
     console.log("Arquivo foi salvo com sucesso");
 }),

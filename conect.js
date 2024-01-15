@@ -1,70 +1,60 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const mysql = require('mysql');
 
-const app = express();  
+const app = express();
 
-// Conectar ao banco de dados MongoDB
-mongoose.connect('mongodb+srv://leandro:340209755@cluster0.rbzhjzh.mongodb.net/?retryWrites=true&w=majority', {
-    useNewUrlParser: true, 
-    useUnifiedTopology: true,
-})
-    .then(() => {
-        // Criar a coleção 'usuarios' explicitamente
-        mongoose.connection.db.createCollection('usuarios', (err, res) => {
-            if (err) throw err;
-            console.log('Coleção de usuários criada');
-        });
-        console.log('Conectado ao MongoDB');
-    })
-    .catch(err => console.error('Erro de conexão com o MongoDB:', err));
+// Conectar ao banco de dados MySQL
+const connection = mysql.createConnection({
+    host: 'seu-host',
+    user: 'seu-usuario',
+    password: 'sua-senha',
+    database: 'seu-banco-de-dados',
+});
+
+connection.connect((err) => {
+    if (err) {
+        console.error('Erro de conexão com o MySQL:', err);
+    } else {
+        console.log('Conectado ao MySQL');
+    }
+});
 
 // Configurar o middleware body-parser para lidar com dados JSON
 app.use(bodyParser.json());
 
 // Definir o modelo de usuário (schema)
-const UsuarioSchema = new mongoose.Schema({
+const UsuarioSchema = {
     nome: String,
     senha: String,
-});
-
-const Usuario = mongoose.model('Usuario', UsuarioSchema);
+};
 
 // Rota para criar um novo usuário
-app.post('/api/criar-usuario', async (req, res) => {
+app.post('/api/criar-usuario', (req, res) => {
     try {
         const { nome, senha } = req.body;
 
-        // Verificar se a coleção 'usuarios' já existe
-        const collections = await mongoose.connection.db.listCollections().toArray();
-        const collectionExists = collections.some(collection => collection.name === 'usuarios');
-
-        if (!collectionExists) {
-            // Se a coleção não existir, crie-a
-            mongoose.connection.db.createCollection('usuarios', (err, res) => {
-                if (err) throw err;
-                console.log('Coleção de usuários criada'); 
-            });
-        }
-
         // Criar uma instância do modelo Usuario com os dados recebidos
-        const novoUsuario = new Usuario({ nome, senha });
+        const novoUsuario = { nome, senha };
 
-        // Realizar a inserção dos dados na coleção 'usuarios'
-        const usuarioInserido = await novoUsuario.save();
+        // Realizar a inserção dos dados na tabela 'usuarios'
+        connection.query('INSERT INTO usuarios SET ?', novoUsuario, (error, results) => {
+            if (error) {
+                console.error('Erro ao criar o usuário:', error);
+                res.status(500).json({ error: 'Erro ao criar o usuário' });
+            } else {
+                // Adicionar o ID gerado ao objeto novoUsuario
+                novoUsuario.id = results.insertId;
 
-        // Responder com os dados do usuário inserido
-        res.json(usuarioInserido);
+                // Responder com os dados do usuário inserido
+                res.json(novoUsuario);
+            }
+        });
     } catch (error) {
         console.error('Erro ao criar o usuário:', error);
         res.status(500).json({ error: 'Erro ao criar o usuário' });
     }
 });
-
-
-
-
-
 
 const porta = process.env.PORT || 8080;
 
